@@ -4,40 +4,80 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import ThreeHelper from '@/utils/ThreeHelper'
+import ParticleEffect from './ParticleEffect'
+
+// 设置加载器
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('./draco/')
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
 
 const wrapperRef = ref()
 let helper: ThreeHelper
-let cube: THREE.Mesh
-
+let particleEffect: ParticleEffect
+let meshArray: Array<THREE.Mesh>
+const colorArray = ['#0b58e7', '#6ee70b', '#e7510b', '#e70bc2', '#92ece8']
 const init = () => {
   helper = new ThreeHelper(wrapperRef.value)
-  console.log(helper.gui)
 
   setGui()
-  addCube()
+  addParticle()
+
   helper.animate(() => {
-    cube.rotation.y += parameter.rotateSpeed
+    if (parameter.progress < 1) {
+      parameter.progress += 0.005
+      particleEffect.setProgess(parameter.progress)
+    } else {
+      parameter.progress = 1
+    }
   })
 }
-const addCube = () => {
-  const geometry = new THREE.BoxGeometry(1, 1, 1)
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-  cube = new THREE.Mesh(geometry, material)
-  helper.scene.add(cube)
+
+gltfLoader.load(
+  '/models/particle.glb',
+  (gltf) => {
+    meshArray = gltf.scene.children as Array<THREE.Mesh>
+  },
+  () => {
+    console.log('progress')
+  },
+  (e) => {
+    console.log('error', e)
+  }
+)
+const addParticle = () => {
+  particleEffect = new ParticleEffect(100000)
+  helper.scene.add(particleEffect.particle)
+  particleEffect.to(new THREE.BoxGeometry(20, 20, 20, 30, 30, 30), [
+    new THREE.Color('#f00'),
+    new THREE.Color('#f0f')
+  ])
 }
+
+let currentMeshIndex = 0
 const parameter = {
-  rotateSpeed: 0.01,
-  scale: 1
+  toggle: () => {
+    parameter.progress = 0
+    particleEffect.to(meshArray[currentMeshIndex].geometry, [
+      new THREE.Color(colorArray[currentMeshIndex]),
+      new THREE.Color(colorArray[colorArray.length - 1 - currentMeshIndex])
+    ])
+    currentMeshIndex++
+    currentMeshIndex %= meshArray.length
+  },
+  progress: 0
 }
 const setGui = () => {
-  helper.gui.add(parameter, 'rotateSpeed', 0, 0.5).name('旋转速度')
-  helper.gui
-    .add(parameter, 'scale', 0.1, 10)
-    .name('缩放')
-    .onChange((v) => {
-      cube.scale.set(v, v, v)
-    })
+  helper.gui.add(parameter, 'toggle').name('切换'),
+    helper.gui
+      .add(parameter, 'progress', 0, 1)
+      .name('进度')
+      .onChange((v) => {
+        particleEffect.setProgess(v)
+      })
 }
 onMounted(() => {
   init()

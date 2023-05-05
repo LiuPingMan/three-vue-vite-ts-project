@@ -20,9 +20,9 @@ class ThreeHelper {
   /**
    * 初始化场景
    */
-  init() {
+  private init() {
     this.initCamera()
-    this.camera.position.z = 5
+    this.camera.position.z = 30
     this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight)
     this.container.appendChild(this.renderer.domElement)
     this.initControls()
@@ -34,7 +34,7 @@ class ThreeHelper {
   /**
    * 初始化相机
    */
-  initCamera() {
+  private initCamera() {
     this.camera.fov = 75
     this.camera.aspect = this.container.offsetWidth / this.container.offsetHeight
     this.camera.near = 0.1
@@ -44,21 +44,21 @@ class ThreeHelper {
   /**
    * 初始化轨道控制器
    */
-  initControls() {
+  private initControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.update()
   }
   /**
    * 初始化坐标轴
    */
-  initAxes() {
+  private initAxes() {
     this.axes = new THREE.AxesHelper(1000)
     this.scene.add(this.axes)
   }
   /**
    * 初始化性能指示器
    */
-  initStats() {
+  private initStats() {
     this.stats = new Stats()
     const { dom } = this.stats
     dom.style.position = 'absolute'
@@ -69,7 +69,7 @@ class ThreeHelper {
   /**
    * 初始化GUI
    */
-  initGui() {
+  private initGui() {
     this.gui = new GUI({ closed: true })
     const { domElement } = this.gui
     domElement.parentElement?.removeChild(domElement)
@@ -91,13 +91,13 @@ class ThreeHelper {
   /**
    * 绑定事件
    */
-  bindEvents() {
+  private bindEvents() {
     window.addEventListener('resize', this.handleContainerResize.bind(this))
   }
   /**
    * 处理浏览器窗口大小变换
    */
-  handleContainerResize() {
+  private handleContainerResize() {
     this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight)
     this.camera.aspect = this.container.offsetWidth / this.container.offsetHeight
     this.camera.updateProjectionMatrix()
