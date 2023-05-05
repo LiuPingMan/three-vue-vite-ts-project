@@ -10,7 +10,11 @@ import { RouterLink, RouterView } from 'vue-router'
     </nav>
   </header>
 
-  <RouterView />
+  <router-view v-slot="{ Component }">
+    <keep-alive :include="['HomeView', 'AboutView']">
+      <component :is="Component" :key="$route.fullPath" />
+    </keep-alive>
+  </router-view>
 </template>
 
 <style scoped></style>
