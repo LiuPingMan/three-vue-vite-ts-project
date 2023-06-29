@@ -1,20 +1,31 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import Stats from 'stats.js'
 import { GUI } from 'dat.gui'
 
+interface ThreeHelperConfig {
+  addAxes?: boolean
+}
 class ThreeHelper {
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera()
   renderer = new THREE.WebGLRenderer()
   container: HTMLElement
+  config: ThreeHelperConfig = {
+    addAxes: true
+  }
+  dracoLoader!: DRACOLoader
+  gltfLoader!: GLTFLoader
   controls!: OrbitControls
   axes!: THREE.AxesHelper
   stats!: Stats
   gui!: GUI
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, config?: ThreeHelperConfig) {
     this.container = container
     this.container.style.position = 'relative'
+    this.config = Object.assign(this.config, config)
     this.init()
   }
   /**
@@ -25,6 +36,7 @@ class ThreeHelper {
     this.camera.position.z = 30
     this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight)
     this.container.appendChild(this.renderer.domElement)
+    this.initLoader()
     this.initControls()
     this.initAxes()
     this.initStats()
@@ -42,6 +54,15 @@ class ThreeHelper {
     this.camera.updateProjectionMatrix()
   }
   /**
+   * 初始化加载器
+   */
+  private initLoader() {
+    this.dracoLoader = new DRACOLoader()
+    this.dracoLoader.setDecoderPath('./draco/')
+    this.gltfLoader = new GLTFLoader()
+    this.gltfLoader.setDRACOLoader(this.dracoLoader)
+  }
+  /**
    * 初始化轨道控制器
    */
   private initControls() {
@@ -52,8 +73,10 @@ class ThreeHelper {
    * 初始化坐标轴
    */
   private initAxes() {
-    this.axes = new THREE.AxesHelper(1000)
-    this.scene.add(this.axes)
+    if (this.config.addAxes) {
+      this.axes = new THREE.AxesHelper(1000)
+      this.scene.add(this.axes)
+    }
   }
   /**
    * 初始化性能指示器
